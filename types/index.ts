@@ -162,6 +162,7 @@ export interface ArenaStore {
   lastResults: Record<string, RunResult>;
   cardStates: Record<string, CardState>;
   isRunning: boolean;
+  activeToolCalls: Record<string, ToolCallResult>;
 
   // ── Actions ────────────────────────────────────────────────
   setTheme: (theme: ThemeMode) => void;
@@ -178,6 +179,8 @@ export interface ArenaStore {
   setModelEndpoint: (modelId: string, url: string) => void;
   toggleWebgl: () => void;
   toggleToolMode: () => void;
+  setActiveToolCall: (modelId: string, tc: ToolCallResult) => void;
+  clearToolCalls: () => void;
 }
 
 // ============================================================

@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "Thin SSE proxy between LLM Arena frontend and NVIDIA Inference API",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js"
   },
   "dependencies": {
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2"
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1"
   }
 }

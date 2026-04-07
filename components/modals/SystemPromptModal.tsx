@@ -147,7 +147,7 @@ export function SystemPromptModal({ isOpen, onClose }: SystemPromptModalProps) {
           display:        "flex",
           justifyContent: "flex-end",
           gap:            8,
-          marginTop:      20,
+          marginTop:      200,
           paddingTop:     16,
           borderTop:      "1px solid var(--border)",
         }}

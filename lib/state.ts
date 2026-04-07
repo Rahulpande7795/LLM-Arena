@@ -39,6 +39,7 @@ export const useArenaStore = create<ArenaStore>()(
       lastResults: {},
       cardStates: {},
       isRunning: false,
+      activeToolCalls: {},
 
       // ── Actions ──────────────────────────────────────────────
 
@@ -98,6 +99,7 @@ export const useArenaStore = create<ArenaStore>()(
         set({
           lastResults: {},
           cardStates: {},
+          activeToolCalls: {},
         }),
 
       setBaseUrl: (url) => set({ baseUrl: url }),
@@ -112,6 +114,13 @@ export const useArenaStore = create<ArenaStore>()(
       toggleWebgl: () => set((s) => ({ webglEnabled: !s.webglEnabled })),
 
       toggleToolMode: () => set((s) => ({ toolMode: !s.toolMode })),
+
+      setActiveToolCall: (modelId, tc) =>
+        set((s) => ({
+          activeToolCalls: { ...s.activeToolCalls, [modelId]: tc },
+        })),
+
+      clearToolCalls: () => set({ activeToolCalls: {} }),
     }),
 
     {

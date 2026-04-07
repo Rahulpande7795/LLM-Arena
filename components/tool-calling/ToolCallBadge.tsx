@@ -18,15 +18,23 @@ function formatResult(toolName: string, result: unknown): string {
   if (!result || typeof result !== "object") return String(result ?? "");
   const r = result as Record<string, unknown>;
 
+  // Handle error responses from real APIs
+  if (r.error === true) {
+    return `Error: ${String(r.message ?? "Tool failed")}`;
+  }
+
   if (toolName === "get_commodity_price") {
     const price = typeof r.price === "number"
-      ? r.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      ? r.price.toLocaleString("en-US", {
+          minimumFractionDigits:  2,
+          maximumFractionDigits:  2,
+        })
       : r.price;
-    return `${String(r.commodity ?? "").toUpperCase()}: $${price} / troy oz`;
+    return `${String(r.commodity ?? "").toUpperCase()}: ${r.currency} ${price} / troy oz`;
   }
 
   if (toolName === "get_weather") {
-    return `${r.city}: ${r.temperature}°${r.unit === "fahrenheit" ? "F" : "C"} · ${r.condition}`;
+    return `${r.city}: ${r.temperature}°${r.unit === "fahrenheit" ? "F" : "C"} · ${r.condition} · Humidity ${r.humidity}%`;
   }
 
   if (toolName === "get_exchange_rate") {

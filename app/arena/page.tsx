@@ -6,14 +6,22 @@ import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 
 // Components
-import { Sidebar }          from "@/components/arena/Sidebar";
+const Sidebar = dynamic(() => import("@/components/arena/Sidebar").then(mod => mod.Sidebar), {
+  loading: () => <div style={{ width: 64, height: "100vh", backgroundColor: "var(--bg-1)" }} />,
+});
 import { Topbar }           from "@/components/arena/Topbar";
-import { ModelChipBar }     from "@/components/arena/ModelChipBar";
+const ModelChipBar = dynamic(() => import("@/components/arena/ModelChipBar").then(mod => mod.ModelChipBar), {
+  loading: () => <div style={{ height: 48 }} />,
+});
 import { PromptBar }        from "@/components/arena/PromptBar";
-import { ResponseGrid }     from "@/components/arena/ResponseGrid";
-import { LeaderboardStrip } from "@/components/arena/LeaderboardStrip";
-import { HistoryView }      from "@/components/arena/views/HistoryView";
-import { SettingsView }     from "@/components/arena/views/SettingsView";
+const ResponseGrid = dynamic(() => import("@/components/arena/ResponseGrid").then(mod => mod.ResponseGrid), {
+  loading: () => <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}><span style={{ color: "var(--ink-4)" }}>Loading...</span></div>,
+});
+const LeaderboardStrip = dynamic(() => import("@/components/arena/LeaderboardStrip").then(mod => mod.LeaderboardStrip), {
+  ssr: false,
+});
+const HistoryView = dynamic(() => import("@/components/arena/views/HistoryView").then(mod => mod.HistoryView), { ssr: false });
+const SettingsView = dynamic(() => import("@/components/arena/views/SettingsView").then(mod => mod.SettingsView), { ssr: false });
 
 // Lazy-loaded modals
 const SystemPromptModal = dynamic(() =>
@@ -82,6 +90,7 @@ function ArenaPageInner() {
   const totalTokens     = useArenaStore((s) => s.totalTokens);
   const ttftSamples     = useArenaStore((s) => s.ttftSamples);
   const webglEnabled    = useArenaStore((s) => s.webglEnabled);
+  const activeToolCalls = useArenaStore((s) => s.activeToolCalls);
 
   const setCardState    = useArenaStore((s) => s.setCardState);
   const setRunning      = useArenaStore((s) => s.setRunning);
@@ -90,6 +99,8 @@ function ArenaPageInner() {
   const setActiveModels = useArenaStore((s) => s.setActiveModels);
   const addHistoryEntry = useArenaStore((s) => s.addHistoryEntry);
   const toggleToolMode  = useArenaStore((s) => s.toggleToolMode);
+  const setActiveToolCall = useArenaStore((s) => s.setActiveToolCall);
+  const clearToolCalls  = useArenaStore((s) => s.clearToolCalls);
 
   // ── Local state ──────────────────────────────────────────────
   const [prompt,             setPrompt]             = useState("");
@@ -109,7 +120,6 @@ function ArenaPageInner() {
   const textsRef = useRef<Record<string, string>>({});
   const [texts,     setTexts]     = useState<Record<string, string>>({});
   const [metrics,   setMetrics]   = useState<Record<string, MetricsData | null>>({});
-  const [toolCalls, setToolCalls] = useState<Record<string, ToolCallResult | null>>({});
   const [results,   setResults]   = useState<Record<string, RunResult>>({});
   const rafRef = useRef<number | null>(null);
 
@@ -128,16 +138,20 @@ function ArenaPageInner() {
   }, [searchParams]);
 
   // ── Computed stats ───────────────────────────────────────────
-  const avgTTFT =
+  const avgTTFT = React.useMemo(() => 
     ttftSamples.length > 0
       ? Math.round(ttftSamples.reduce((a, b) => a + b, 0) / ttftSamples.length)
-      : 0;
+      : 0
+  , [ttftSamples]);
 
-  const serverStatus: "connected" | "disconnected" | "checking" =
+  const serverStatus: "connected" | "disconnected" | "checking" = React.useMemo(() => 
     Object.values(health).some((h) => h === "online")   ? "connected"    :
-    Object.values(health).some((h) => h === "checking") ? "checking"     : "disconnected";
+    Object.values(health).some((h) => h === "checking") ? "checking"     : "disconnected"
+  , [health]);
 
-  const activeModelConfigs = MODELS.filter((m) => activeModels.includes(m.id));
+  const activeModelConfigs = React.useMemo(() => 
+    MODELS.filter((m) => activeModels.includes(m.id))
+  , [activeModels]);
 
   // ── handleRun ────────────────────────────────────────────────
   const handleRun = useCallback(async () => {
@@ -154,7 +168,7 @@ function ArenaPageInner() {
     clearResults();
     setTexts({});
     setMetrics({});
-    setToolCalls({});
+    clearToolCalls();
     setResults({});
     textsRef.current = {};
     setLeaderboardVisible(false);
@@ -216,7 +230,7 @@ function ArenaPageInner() {
           await runModelWithTools({
             ...commonConfig,
             onToolCall: (tc: ToolCallResult) => {
-              setToolCalls((prev) => ({ ...prev, [model.id]: tc }));
+              setActiveToolCall(model.id, tc);
             },
           });
         } else {
@@ -246,7 +260,7 @@ function ArenaPageInner() {
   }, [
     prompt, activeModels, activeModelConfigs, systemPrompt, modelEndpoints,
     toolMode, clearResults, setRunning, setCardState, addHistoryEntry,
-    runModel, runModelWithTools, toast,
+    runModel, runModelWithTools, toast, clearToolCalls, setActiveToolCall,
   ]);
 
   // ── handleCancel ─────────────────────────────────────────────
@@ -264,11 +278,11 @@ function ArenaPageInner() {
     clearResults();
     setTexts({});
     setMetrics({});
-    setToolCalls({});
+    clearToolCalls();
     setResults({});
     textsRef.current = {};
     setLeaderboardVisible(false);
-  }, [clearResults]);
+  }, [clearResults, clearToolCalls]);
 
   // ── Keyboard shortcuts ───────────────────────────────────────
   useKeyboardShortcuts({
@@ -432,7 +446,7 @@ function ArenaPageInner() {
                       cardStates={cardStates}
                       texts={texts}
                       metrics={metrics}
-                      toolCalls={toolCalls}
+                      toolCalls={activeToolCalls}
                       results={results}
                       onRetry={handleRetry}
                       onCopy={handleCopy}

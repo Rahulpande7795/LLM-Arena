@@ -10,14 +10,13 @@ type LenisInstance = {
 };
 
 /**
- * Initialises Lenis smooth scrolling synced with GSAP's ticker.
+ * Initialises Lenis smooth scrolling using native requestAnimationFrame.
  * Both libraries are loaded dynamically (no SSR, no bundle impact).
  * Returns the Lenis instance ref (null until initialized).
  */
 export function useLenis() {
   const lenisRef = useRef<LenisInstance | null>(null);
-  // Store GSAP ticker fn so we can remove it on cleanup
-  const tickerFnRef = useRef<((time: number) => void) | null>(null);
+  const rafIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Only runs in the browser
@@ -27,14 +26,9 @@ export function useLenis() {
 
     async function init() {
       try {
-        const [{ default: Lenis }, gsapModule] = await Promise.all([
-          import("@studio-freight/lenis"),
-          import("gsap"),
-        ]);
+        const { default: Lenis } = await import("@studio-freight/lenis");
 
         if (cancelled) return;
-
-        const gsap = gsapModule.default ?? gsapModule;
 
         const lenis = new Lenis({
           lerp:     0.10,
@@ -43,17 +37,16 @@ export function useLenis() {
 
         lenisRef.current = lenis;
 
-        // Sync Lenis with GSAP ticker
-        const tickerFn = (time: number) => lenis.raf(time * 1000);
-        tickerFnRef.current = tickerFn;
+        // Native requestAnimationFrame loop
+        const raf = (time: number) => {
+          lenis.raf(time);
+          rafIdRef.current = requestAnimationFrame(raf);
+        };
 
-        (gsap as { ticker: { add: (fn: (t: number) => void) => void; lagSmoothing: (v: number) => void } })
-          .ticker.add(tickerFn);
-        (gsap as { ticker: { add: (fn: (t: number) => void) => void; lagSmoothing: (v: number) => void } })
-          .ticker.lagSmoothing(0);
+        rafIdRef.current = requestAnimationFrame(raf);
 
       } catch {
-        // GSAP / Lenis failed to load — degrade gracefully
+        // Lenis failed to load — degrade gracefully
         console.warn("[useLenis] Could not initialise smooth scroll.");
       }
     }
@@ -63,16 +56,10 @@ export function useLenis() {
     return () => {
       cancelled = true;
 
-      // Clean up GSAP ticker
-      if (tickerFnRef.current) {
-        import("gsap")
-          .then((mod) => {
-            const gsap = mod.default ?? mod;
-            (gsap as { ticker: { remove: (fn: (t: number) => void) => void } })
-              .ticker.remove(tickerFnRef.current!);
-          })
-          .catch(() => {});
-        tickerFnRef.current = null;
+      // Clean up requestAnimationFrame
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
       }
 
       // Destroy Lenis

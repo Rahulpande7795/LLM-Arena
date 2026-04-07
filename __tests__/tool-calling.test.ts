@@ -1,10 +1,14 @@
 /**
  * Tool calling integration tests
- * Tests tool detection, executeToolCall mock data, and two-phase flow logic
+ * Tests tool detection, executeToolCall real APIs, and two-phase flow logic
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { executeToolCall, TOOL_DEFINITIONS } from "@/lib/tools";
+
+// Load local environment for tests
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
 
 // ============================================================
 // TOOL DEFINITIONS TESTS
@@ -34,12 +38,15 @@ describe("Tool definitions are correctly structured", () => {
     expect(tool).toBeDefined();
 
     const { properties } = tool!.function.parameters;
-    expect(properties.commodity.enum).toContain("gold");
-    expect(properties.commodity.enum).toContain("silver");
-    expect(properties.commodity.enum).toContain("platinum");
-    expect(properties.currency.enum).toContain("USD");
-    expect(properties.currency.enum).toContain("INR");
-    expect(properties.currency.enum).toContain("EUR");
+    
+    expect(properties.commodity).toBeDefined();
+    expect(properties.commodity?.enum).toContain("gold");
+    expect(properties.commodity?.enum).toContain("silver");
+    expect(properties.commodity?.enum).toContain("platinum");
+    
+    expect(properties.currency).toBeDefined();
+    expect(properties.currency?.type).toBe("string");
+    expect(properties.currency?.description).toBeDefined();
   });
 
   it("D: get_weather has celsius and fahrenheit options", () => {
@@ -48,13 +55,15 @@ describe("Tool definitions are correctly structured", () => {
     );
     expect(tool).toBeDefined();
     const { properties } = tool!.function.parameters;
-    expect(properties.unit.enum).toContain("celsius");
-    expect(properties.unit.enum).toContain("fahrenheit");
+    
+    expect(properties.unit).toBeDefined();
+    expect(properties.unit?.enum).toContain("celsius");
+    expect(properties.unit?.enum).toContain("fahrenheit");
   });
 });
 
 // ============================================================
-// executeToolCall — GOLD PRICES
+// executeToolCall — REAL APIs
 // ============================================================
 
 describe("Tool calling: detection, execution, and final answer", () => {
@@ -64,41 +73,38 @@ describe("Tool calling: detection, execution, and final answer", () => {
     const result = await executeToolCall("get_commodity_price", {
       commodity: "gold",
       currency:  "USD",
-    });
+    }) as Record<string, unknown>;
 
-    expect(result).toMatchObject({
-      commodity: "gold",
-      currency:  "USD",
-      price:     2341.50,
-      source:    "mock",
-    });
-    expect(typeof (result as { timestamp: number }).timestamp).toBe("number");
+    expect(result.commodity).toBe("gold");
+    expect(result.currency).toBe("USD");
+    expect(typeof result.price).toBe("number");
+    expect(result.price as number).toBeGreaterThan(0);
+    expect(result.source).toBe("MetalPriceAPI");
+    expect(typeof result.timestamp).toBe("number");
   });
 
   it("B: get_commodity_price returns correct silver price in INR", async () => {
     const result = await executeToolCall("get_commodity_price", {
       commodity: "silver",
       currency:  "INR",
-    });
+    }) as Record<string, unknown>;
 
-    expect(result).toMatchObject({
-      commodity: "silver",
-      currency:  "INR",
-      price:     2487,
-    });
+    expect(result.commodity).toBe("silver");
+    expect(result.currency).toBe("INR");
+    expect(typeof result.price).toBe("number");
+    expect(result.price as number).toBeGreaterThan(0);
   });
 
   it("C: get_commodity_price returns correct platinum price in EUR", async () => {
     const result = await executeToolCall("get_commodity_price", {
       commodity: "platinum",
       currency:  "EUR",
-    });
+    }) as Record<string, unknown>;
 
-    expect(result).toMatchObject({
-      commodity: "platinum",
-      currency:  "EUR",
-      price:     905.00,
-    });
+    expect(result.commodity).toBe("platinum");
+    expect(result.currency).toBe("EUR");
+    expect(typeof result.price).toBe("number");
+    expect(result.price as number).toBeGreaterThan(0);
   });
 
   // ── Weather ─────────────────────────────────────────────────
@@ -109,10 +115,10 @@ describe("Tool calling: detection, execution, and final answer", () => {
       unit: "celsius",
     }) as Record<string, unknown>;
 
-    expect(result.temperature).toBe(32);
-    expect(result.condition).toBe("Sunny");
+    expect(typeof result.temperature).toBe("number");
+    expect(typeof result.condition).toBe("string");
     expect(result.unit).toBe("celsius");
-    expect(result.source).toBe("mock");
+    expect(result.source).toBe("OpenWeatherMap");
   });
 
   it("E: get_weather converts celsius to fahrenheit correctly", async () => {
@@ -121,20 +127,18 @@ describe("Tool calling: detection, execution, and final answer", () => {
       unit: "fahrenheit",
     }) as Record<string, unknown>;
 
-    // London is 14°C → (14 * 9/5) + 32 = 57.2°F → rounded = 57
-    expect(result.temperature).toBe(57);
+    expect(typeof result.temperature).toBe("number");
     expect(result.unit).toBe("fahrenheit");
   });
 
   it("F: get_weather handles unknown city gracefully", async () => {
     const result = await executeToolCall("get_weather", {
-      city: "atlantis",
+      city: "atlantis_not_real_12345",
       unit: "celsius",
     }) as Record<string, unknown>;
 
-    expect(result.temperature).toBeNull();
-    expect(result.condition).toBe("Data not available");
-    expect(result.source).toBe("mock");
+    expect(result.error).toBe(true);
+    expect(typeof result.message).toBe("string");
   });
 
   // ── Exchange rates ──────────────────────────────────────────
@@ -145,10 +149,10 @@ describe("Tool calling: detection, execution, and final answer", () => {
       to:   "INR",
     }) as Record<string, unknown>;
 
-    expect(result.rate).toBe(83.4);
+    expect(typeof result.rate).toBe("number");
+    expect(result.rate as number).toBeGreaterThan(0);
     expect(result.from).toBe("USD");
     expect(result.to).toBe("INR");
-    expect(result.available).toBe(true);
   });
 
   it("H: get_exchange_rate supports reverse lookup (INR/USD)", async () => {
@@ -157,9 +161,8 @@ describe("Tool calling: detection, execution, and final answer", () => {
       to:   "USD",
     }) as Record<string, unknown>;
 
-    // Reverse of 83.4 ≈ 0.01199
-    expect(result.available).toBe(true);
-    expect(result.rate).toBeCloseTo(1 / 83.4, 3);
+    expect(typeof result.rate).toBe("number");
+    expect(result.rate as number).toBeGreaterThan(0);
   });
 
   it("I: get_exchange_rate same currency returns rate of 1", async () => {
@@ -174,9 +177,8 @@ describe("Tool calling: detection, execution, and final answer", () => {
   it("J: unknown tool returns error object instead of throwing", async () => {
     const result = await executeToolCall("nonexistent_tool", {}) as Record<string, unknown>;
 
-    expect(result.error).toBeDefined();
-    expect(typeof result.error).toBe("string");
-    expect(result.source).toBe("mock");
+    expect(result.error).toBe(true);
+    expect(typeof result.message).toBe("string");
   });
 
   // ── Two-phase flow simulation ────────────────────────────────
@@ -216,7 +218,8 @@ describe("Tool calling: detection, execution, and final answer", () => {
       rawArgs
     ) as Record<string, unknown>;
 
-    expect(toolResult.price).toBe(2341.50);
+    expect(typeof toolResult.price).toBe("number");
+    expect(toolResult.price as number).toBeGreaterThan(0);
 
     // Build Phase 2 messages array
     const phase2Messages = [
@@ -239,7 +242,8 @@ describe("Tool calling: detection, execution, and final answer", () => {
     expect(phase2Messages[2].tool_call_id).toBe("call_abc123");
 
     const parsedContent = JSON.parse(phase2Messages[2].content as string) as Record<string, unknown>;
-    expect(parsedContent.price).toBe(2341.50);
+    expect(typeof parsedContent.price).toBe("number");
+    expect(parsedContent.price as number).toBeGreaterThan(0);
   });
 
   it("L: model ignores tools (finish_reason=stop) — no executeToolCall needed", () => {

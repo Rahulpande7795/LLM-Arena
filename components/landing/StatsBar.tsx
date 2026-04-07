@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import { useInView, animate } from "framer-motion";
 
 const STATS = [
   { value: 11,  label: "Models Supported",    suffix: "" },
@@ -17,46 +18,24 @@ interface StatItemProps {
 
 function StatItem({ value, label, suffix }: StatItemProps) {
   const numRef = useRef<HTMLSpanElement>(null);
-  const triggered = useRef(false);
+  const isInView = useInView(numRef, { once: true, margin: "-15%" });
 
   useEffect(() => {
-    if (value === null) return;
+    if (value === null || !isInView || !numRef.current) return;
 
-    async function setup() {
-      try {
-        const gsapMod = await import("gsap");
-        const stMod   = await import("gsap/ScrollTrigger");
-        const gsap    = gsapMod.default ?? gsapMod;
-        const { ScrollTrigger } = stMod;
-        gsap.registerPlugin(ScrollTrigger);
+    const node = numRef.current;
+    
+    // Animate from 0 to target value 
+    const controls = animate(0, value, {
+      duration: 1.4,
+      ease: "easeOut",
+      onUpdate(cur) {
+        node.textContent = Math.round(cur).toString();
+      },
+    });
 
-        ScrollTrigger.create({
-          trigger: numRef.current,
-          start:   "top 85%",
-          onEnter: () => {
-            if (triggered.current) return;
-            triggered.current = true;
-            const obj = { val: 0 };
-            gsap.to(obj, {
-              val:      value,
-              duration: 1.4,
-              ease:     "power2.out",
-              onUpdate: () => {
-                if (numRef.current) {
-                  numRef.current.textContent = Math.round(obj.val).toString();
-                }
-              },
-            });
-          },
-        });
-      } catch {
-        // GSAP unavailable — just show the number
-        if (numRef.current) numRef.current.textContent = String(value);
-      }
-    }
-
-    setup();
-  }, [value]);
+    return controls.stop;
+  }, [value, isInView]);
 
   return (
     <div

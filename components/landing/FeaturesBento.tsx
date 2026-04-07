@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { TEMPLATES } from "@/lib/templates";
 import { SHORTCUT_LABELS } from "@/lib/shortcuts";
 import type { ShortcutKey } from "@/types";
@@ -28,6 +29,7 @@ function Tile({
         boxShadow:       "var(--shadow-md)",
         overflow:        "hidden",
         transition:      "transform 200ms ease-out, box-shadow 200ms ease-out",
+        height:          "100%", // ensure height is filled
         ...style,
       }}
       onMouseEnter={(e) => {
@@ -80,7 +82,7 @@ function StreamingTile() {
   }, []);
 
   return (
-    <Tile style={{ gridColumn: "span 2", gridRow: "span 2" }}>
+    <Tile>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
         <span style={{ fontSize: 20 }}>🌊</span>
         <TileTitle>Real-time SSE Streaming</TileTitle>
@@ -125,7 +127,7 @@ function ToolCallingTile() {
     { model: "qwen-72b",    color: "#ec4899", supports: true  },
   ];
   return (
-    <Tile style={{ gridColumn: "span 2" }}>
+    <Tile>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
         <span style={{ fontSize: 20 }}>⚡</span>
         <TileTitle>Tool Calling Detection</TileTitle>
@@ -153,7 +155,7 @@ function ToolCallingTile() {
 
 function TemplatesTile() {
   return (
-    <Tile style={{ gridRow: "span 2" }}>
+    <Tile>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
         <span style={{ fontSize: 20 }}>📝</span>
         <TileTitle>13 Prompt Templates</TileTitle>
@@ -267,33 +269,22 @@ function ShortcutsTile() {
 // MAIN COMPONENT
 // ============================================================
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: {
+    opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" }
+  }
+};
+
 export function FeaturesBento() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    async function setup() {
-      try {
-        const gsapMod = await import("gsap");
-        const stMod   = await import("gsap/ScrollTrigger");
-        const gsap    = gsapMod.default ?? gsapMod;
-        const { ScrollTrigger } = stMod;
-        gsap.registerPlugin(ScrollTrigger);
-        if (!sectionRef.current) return;
-        const tiles = sectionRef.current.querySelectorAll(".bento-tile");
-        gsap.fromTo(tiles, { opacity: 0, y: 20 }, {
-          opacity: 1, y: 0, duration: 0.5, ease: "power2.out", stagger: 0.08,
-          scrollTrigger: { trigger: sectionRef.current, start: "top 80%" },
-        });
-      } catch {
-        if (sectionRef.current) {
-          sectionRef.current.querySelectorAll<HTMLElement>(".bento-tile")
-            .forEach((el) => { el.style.opacity = "1"; });
-        }
-      }
-    }
-    setup();
-  }, []);
-
   return (
     <section style={{ padding: "96px 24px" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -301,8 +292,11 @@ export function FeaturesBento() {
           Everything You Need
         </h2>
 
-        <div
-          ref={sectionRef}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-15%" }}
           style={{
             display:             "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
@@ -310,13 +304,13 @@ export function FeaturesBento() {
             gap:                 16,
           }}
         >
-          <div className="bento-tile" style={{ opacity: 0, gridColumn: "span 2", gridRow: "span 2" }}><StreamingTile /></div>
-          <div className="bento-tile" style={{ opacity: 0, gridColumn: "span 2" }}><ToolCallingTile /></div>
-          <div className="bento-tile" style={{ opacity: 0, gridRow: "span 2" }}><TemplatesTile /></div>
-          <div className="bento-tile" style={{ opacity: 0 }}><ExportsTile /></div>
-          <div className="bento-tile" style={{ opacity: 0 }}><ThemeTile /></div>
-          <div className="bento-tile" style={{ opacity: 0 }}><ShortcutsTile /></div>
-        </div>
+          <motion.div variants={itemVariants} style={{ gridColumn: "span 2", gridRow: "span 2" }}><StreamingTile /></motion.div>
+          <motion.div variants={itemVariants} style={{ gridColumn: "span 2" }}><ToolCallingTile /></motion.div>
+          <motion.div variants={itemVariants} style={{ gridRow: "span 2" }}><TemplatesTile /></motion.div>
+          <motion.div variants={itemVariants}><ExportsTile /></motion.div>
+          <motion.div variants={itemVariants}><ThemeTile /></motion.div>
+          <motion.div variants={itemVariants}><ShortcutsTile /></motion.div>
+        </motion.div>
       </div>
     </section>
   );

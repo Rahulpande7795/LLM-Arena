@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React from "react";
+import { motion } from "framer-motion";
 
 const STEPS = [
   {
@@ -30,49 +31,8 @@ const STEPS = [
 ];
 
 export function HowItWorks() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    async function setup() {
-      try {
-        const gsapMod = await import("gsap");
-        const stMod   = await import("gsap/ScrollTrigger");
-        const gsap    = gsapMod.default ?? gsapMod;
-        const { ScrollTrigger } = stMod;
-        gsap.registerPlugin(ScrollTrigger);
-
-        if (!sectionRef.current) return;
-        const cards = sectionRef.current.querySelectorAll(".how-card");
-
-        gsap.fromTo(
-          cards,
-          { opacity: 0, y: 30 },
-          {
-            opacity:  1,
-            y:        0,
-            duration: 0.6,
-            ease:     "power2.out",
-            stagger:  0.12,
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start:   "top 80%",
-            },
-          }
-        );
-      } catch {
-        // GSAP not available — show without animation
-        if (sectionRef.current) {
-          sectionRef.current.querySelectorAll<HTMLElement>(".how-card")
-            .forEach((el) => { el.style.opacity = "1"; });
-        }
-      }
-    }
-    setup();
-  }, []);
-
   return (
     <section
-      ref={sectionRef}
       style={{
         padding:   "96px 24px",
         maxWidth:  1100,
@@ -103,11 +63,18 @@ export function HowItWorks() {
         }}
       >
         {STEPS.map((step, i) => (
-          <div
+          <motion.div
             key={step.number}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-15%" }}
+            transition={{
+              duration: 0.6,
+              ease: "easeOut",
+              delay: i * 0.12,
+            }}
             className="how-card"
             style={{
-              opacity:         0,
               backgroundColor: "var(--bg-1)",
               borderRadius:    "var(--r-xl)",
               padding:         "24px 20px",
@@ -180,7 +147,7 @@ export function HowItWorks() {
                 →
               </div>
             )}
-          </div>
+          </motion.div>
         ))}
       </div>
     </section>

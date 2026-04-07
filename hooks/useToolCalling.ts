@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { SERVER_CONFIG } from "@/lib/endpoints";
 import { TOOL_DEFINITIONS, executeToolCall } from "@/lib/tools";
 import { classifyError, createHttpError } from "@/lib/errors";
+import { ErrorType } from "@/types";
 import type {
   MetricsData,
   RunResult,
@@ -104,23 +105,40 @@ export function useToolCalling() {
       };
 
       try {
-        const phase1Res = await fetch(
-          SERVER_CONFIG.baseUrl + SERVER_CONFIG.apiPath,
-          {
+        const proxyUrl = process.env.NEXT_PUBLIC_PROXY_URL ?? "http://localhost:8000";
+        const endpoint = `${proxyUrl}/v1/chat/completions`;
+
+        let phase1Response: Response;
+        try {
+          phase1Response = await fetch(endpoint, {
             method:  "POST",
             headers: { "Content-Type": "application/json" },
             body:    JSON.stringify(phase1Body),
-          }
-        );
-
-        if (!phase1Res.ok) {
-          throw createHttpError(phase1Res.status, `HTTP ${phase1Res.status}`);
+          });
+        } catch {
+          // Proxy is unreachable — surface clean error
+          throw new Error(
+            "Cannot reach proxy server. Make sure server/index.js is running on port 8000."
+          );
         }
 
-        phase1Data = await phase1Res.json();
+        if (!phase1Response.ok) {
+          const body = await phase1Response.text();
+          throw new Error(`API error ${phase1Response.status}: ${body}`);
+        }
+
+        phase1Data = await phase1Response.json();
       } catch (err) {
         const classified = classifyError(err);
-        if (classified) onError(classified);
+        if (classified) {
+          onError(classified);
+        } else {
+          onError({
+            type: err instanceof Error && err.message.includes("Cannot reach proxy") ? ErrorType.NETWORK : ErrorType.UNKNOWN,
+            message: err instanceof Error ? err.message : String(err),
+            retryable: true
+          });
+        }
         return;
       }
 
@@ -177,22 +195,39 @@ export function useToolCalling() {
           timestamp: Date.now(),
         });
 
-        // Execute mock tool
+        // Execute real tool
         let result: Record<string, unknown>;
         try {
-          result = await executeToolCall(tc.function.name, args);
-        } catch {
-          result = { error: "Tool execution failed" };
+          result = (await executeToolCall(tc.function.name, args)) as Record<string, unknown>;
+          
+          if (result && result.error === true) {
+            onToolCall({
+              toolName:  tc.function.name,
+              args,
+              result,
+              status:    "error",
+              timestamp: Date.now(),
+            });
+          } else {
+            onToolCall({
+              toolName:  tc.function.name,
+              args,
+              result,
+              status:    "done",
+              timestamp: Date.now(),
+            });
+          }
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : "Tool execution failed";
+          result = { error: true, message: errorMessage };
+          onToolCall({
+            toolName:  tc.function.name,
+            args,
+            result,
+            status:    "error",
+            timestamp: Date.now(),
+          });
         }
-
-        // Notify UI — status "done"
-        onToolCall({
-          toolName:  tc.function.name,
-          args,
-          result,
-          status:    "done",
-          timestamp: Date.now(),
-        });
 
         toolResultMessages.push({
           role:         "tool",
