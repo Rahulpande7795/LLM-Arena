@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import { ToastContainer } from "@/components/ui/ToastContainer";
+import { SkipLink }      from "@/components/ui/SkipLink";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -60,7 +61,11 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ThemeProvider>
-          {children}
+          {/* Skip to main content — visible on focus for keyboard users */}
+          <SkipLink />
+          <div id="main-content" className="page-transition">
+            {children}
+          </div>
           <ToastContainer />
         </ThemeProvider>
       </body>

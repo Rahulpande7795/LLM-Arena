@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
 import { ToolCallBadge } from "@/components/tool-calling/ToolCallBadge";
 import { Button } from "@/components/ui/Button";
 import { MODELS } from "@/lib/models";
+import GlareHover from "@/registry/magicui/GlareHover";
+import FuzzyText from "@/registry/magicui/FuzzyText";
 import type { CardState, MetricsData, ToolCallResult } from "@/types";
 
 // ============================================================
@@ -60,7 +62,7 @@ function StatePill({ state }: { state: CardState }) {
     <span
       style={{
         fontFamily:      "var(--font-jetbrains-mono), monospace",
-        fontSize:        10,
+        fontSize:        11,
         fontWeight:      600,
         letterSpacing:   "0.08em",
         color:           cfg.color,
@@ -101,7 +103,7 @@ function MetricBlock({
       <div
         style={{
           fontFamily:    "var(--font-jetbrains-mono), monospace",
-          fontSize:      10,
+          fontSize:      11,
           color:         "var(--ink-4)",
           textTransform: "uppercase",
           letterSpacing: "0.08em",
@@ -140,15 +142,15 @@ export function ResponseCard({
   onCopy,
 }: ResponseCardProps) {
   const [hovered, setHovered] = useState(false);
+  const [copied,  setCopied]  = useState(false);
   const model = MODELS.find((m) => m.id === modelId);
   const isStreaming = state === "streaming";
 
-  // Shake animation for error state
-  const shakeVariants = {
-    idle:  { x: 0 },
-    shake: { x: [0, -6, 6, -4, 4, -2, 2, 0] },
-  };
-  const shakeRef = useRef<"idle" | "shake">("idle");
+  const handleCopy = useCallback(() => {
+    onCopy();
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }, [onCopy]);
 
   // Show skeleton while loading
   if (state === "loading") {
@@ -210,14 +212,16 @@ export function ResponseCard({
             right:           0,
             height:          2,
             backgroundColor: "var(--bg-2)",
+            overflow:        "hidden",
           }}
         >
           <motion.div
-            animate={{ width: `${Math.min((metrics?.tokens ?? 0) / 4, 100)}%` }}
+            animate={{ scaleX: Math.min((metrics?.tokens ?? 0) / 400, 1) }}
             transition={{ duration: 0.2, ease: "easeOut" }}
             style={{
               height:          "100%",
               backgroundColor: modelColor,
+              transformOrigin: "left center",
               borderRadius:    "0 2px 2px 0",
             }}
           />
@@ -289,9 +293,9 @@ export function ResponseCard({
           <Button
             variant="ghost"
             size="sm"
-            onClick={onCopy}
-            leftIcon={<CopyIcon />}
-            aria-label="Copy response"
+            onClick={handleCopy}
+            leftIcon={copied ? <span style={{ fontSize: 14 }}>✓</span> : <CopyIcon />}
+            aria-label="Copy response to clipboard"
             title="Copy"
           />
           <Button
@@ -299,7 +303,7 @@ export function ResponseCard({
             size="sm"
             onClick={onRetry}
             leftIcon={<RetryIcon />}
-            aria-label="Retry this model"
+            aria-label={`Retry ${model?.label ?? modelId}`}
             title="Retry"
           />
         </motion.div>
@@ -319,6 +323,7 @@ export function ResponseCard({
         }}
         aria-live={isStreaming ? "polite" : undefined}
         aria-atomic="false"
+        aria-label={`${model?.label ?? modelId} response`}
       >
         {state === "error" && (
           <div
@@ -333,7 +338,7 @@ export function ResponseCard({
               fontSize:       15,
             }}
           >
-            <span>⚠ An error occurred</span>
+            <span>⚠ <FuzzyText baseIntensity={0.22} hoverIntensity={0.5} enableHover={true}>An error occurred</FuzzyText></span>
             <Button variant="danger" size="sm" onClick={onRetry}>
               Retry
             </Button>
@@ -347,34 +352,44 @@ export function ResponseCard({
         )}
 
         {(state === "streaming" || state === "done") && (
-          <p
-            style={{
-              fontFamily:  "var(--font-plus-jakarta-sans), sans-serif",
-              fontSize:    16,
-              lineHeight:  1.7,
-              color:       "var(--ink-2)",
-              whiteSpace:  "pre-wrap",
-              wordBreak:   "break-word",
-              margin:      0,
-            }}
+          <GlareHover
+            glareColor="#ffffff"
+            glareOpacity={0.25}
+            glareAngle={-30}
+            glareSize={280}
+            transitionDuration={700}
+            style={{ borderRadius: "var(--r-sm)", width: "100%" }}
           >
-            {text}
-            {/* Blinking cursor while streaming */}
-            {isStreaming && (
-              <span
-                aria-hidden="true"
-                style={{
-                  display:    "inline-block",
-                  width:      2,
-                  height:     "1em",
-                  backgroundColor: "var(--accent)",
-                  marginLeft: 2,
-                  verticalAlign: "text-bottom",
-                  animation:  "blink-cursor 0.7s step-end infinite",
-                }}
-              />
-            )}
-          </p>
+            <p
+              style={{
+                fontFamily:  "var(--font-plus-jakarta-sans), sans-serif",
+                fontSize:    16,
+                lineHeight:  1.7,
+                color:       "var(--ink-2)",
+                whiteSpace:  "pre-wrap",
+                wordBreak:   "break-word",
+                margin:      0,
+                padding:     "4px 2px",
+              }}
+            >
+              {text}
+              {/* Blinking cursor while streaming */}
+              {isStreaming && (
+                <span
+                  aria-hidden="true"
+                  style={{
+                    display:    "inline-block",
+                    width:      2,
+                    height:     "1em",
+                    backgroundColor: "var(--accent)",
+                    marginLeft: 2,
+                    verticalAlign: "text-bottom",
+                    animation:  "blink-cursor 0.7s step-end infinite",
+                  }}
+                />
+              )}
+            </p>
+          </GlareHover>
         )}
       </div>
 

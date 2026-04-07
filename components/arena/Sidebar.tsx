@@ -86,7 +86,6 @@ export function Sidebar({
   mobileOpen,
   onMobileClose,
 }: SidebarProps) {
-  const width = collapsed ? 64 : 268;
 
   return (
     <>
@@ -103,9 +102,9 @@ export function Sidebar({
             style={{
               position:        "fixed",
               inset:           0,
-              backgroundColor: "rgba(0,0,0,0.5)",
+              backgroundColor: "color-mix(in srgb, var(--bg) 40%, transparent)",
+              backdropFilter:  "blur(4px)",
               zIndex:          29,
-              display:         "none", // shown via media query workaround below
             }}
             className="mobile-backdrop"
           />
@@ -114,12 +113,12 @@ export function Sidebar({
 
       {/* ── Sidebar panel ── */}
       <motion.aside
-        animate={{ width }}
-        transition={{ type: "spring", stiffness: 300, damping: 35 }}
+        animate={{ x: 0 }}
         style={{
           position:        "sticky",
           top:             0,
           height:          "100dvh",
+          width:           collapsed ? 64 : 268,
           flexShrink:      0,
           display:         "flex",
           flexDirection:   "column",
@@ -129,6 +128,7 @@ export function Sidebar({
           borderRight:     "1px solid var(--border)",
           overflow:        "hidden",
           zIndex:          30,
+          transition:      "width 220ms cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
         {/* ── Logo ── */}
@@ -276,7 +276,7 @@ export function Sidebar({
                   <span
                     style={{
                       fontFamily:    "var(--font-jetbrains-mono), monospace",
-                      fontSize:      10,
+                      fontSize:      11,
                       color:         "var(--ink-4)",
                       textTransform: "uppercase",
                       letterSpacing: "0.08em",
@@ -309,10 +309,9 @@ export function Sidebar({
             alignItems:      "center",
             justifyContent:  collapsed ? "center" : "flex-end",
             padding:         "12px 16px",
-            borderTop:       "1px solid var(--border)",
             background:      "none",
             border:          "none",
-            // borderTop:       "1px solid var(--border)",
+            borderTop:       "1px solid var(--border)",
             color:           "var(--ink-4)",
             cursor:          "pointer",
             width:           "100%",

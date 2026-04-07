@@ -1,170 +1,148 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { MODELS } from "@/lib/models";
+import TiltedCard from "@/components/ui/TiltedCard";
+import MagicBento from "@/components/ui/MagicBento";
 
 export function ModelsGrid() {
-  const gridRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    async function setup() {
-      try {
-        const gsapMod = await import("gsap");
-        const stMod   = await import("gsap/ScrollTrigger");
-        const gsap    = gsapMod.default ?? gsapMod;
-        const { ScrollTrigger } = stMod;
-        gsap.registerPlugin(ScrollTrigger);
-
-        if (!gridRef.current) return;
-        const cards = gridRef.current.querySelectorAll(".model-card");
-
-        gsap.fromTo(
-          cards,
-          { opacity: 0, scale: 0.94 },
-          {
-            opacity:  1,
-            scale:    1,
-            duration: 0.4,
-            ease:     "power2.out",
-            stagger:  0.06,
-            scrollTrigger: {
-              trigger: gridRef.current,
-              start:   "top 85%",
-            },
-          }
-        );
-      } catch {
-        if (gridRef.current) {
-          gridRef.current.querySelectorAll<HTMLElement>(".model-card")
-            .forEach((el) => { el.style.opacity = "1"; });
-        }
-      }
-    }
-    setup();
-  }, []);
-
   return (
     <section
       style={{
         padding:         "96px 24px",
-        backgroundColor: "var(--bg-1)",
+        backgroundColor: "var(--bg)",
       }}
     >
-      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-        <h2
-          style={{
-            fontWeight:   800,
-            fontSize:     "clamp(28px, 4vw, 40px)",
-            textAlign:    "center",
-            color:        "var(--ink)",
-            marginBottom: 48,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Supported Models
-        </h2>
-
-        <div
-          ref={gridRef}
-          style={{
-            display:             "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-            gap:                 14,
-          }}
-        >
-          {MODELS.map((model) => (
-            <div
-              key={model.id}
-              className="model-card"
-              style={{
-                opacity:         0,
-                backgroundColor: "var(--bg)",
-                borderRadius:    "var(--r-lg)",
-                padding:         "14px 16px",
-                boxShadow:       "var(--shadow-sm)",
-                borderLeft:      `3px solid ${model.color}`,
-                transition:      "transform 150ms ease-out, box-shadow 150ms ease-out",
-                cursor:          "default",
-              }}
-              onMouseEnter={(e) => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.transform  = "translateY(-3px)";
-                el.style.boxShadow  = "var(--shadow-md)";
-              }}
-              onMouseLeave={(e) => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.transform  = "translateY(0)";
-                el.style.boxShadow  = "var(--shadow-sm)";
-              }}
-            >
-              {/* Top row */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div
-                    style={{
-                      width:           10,
-                      height:          10,
-                      borderRadius:    "50%",
-                      backgroundColor: model.color,
-                      boxShadow:       `0 0 6px ${model.color}66`,
-                      flexShrink:      0,
-                    }}
-                  />
-                  <span style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>
-                    {model.label}
-                  </span>
-                </div>
-                <span
-                  style={{
-                    fontFamily:    "var(--font-jetbrains-mono), monospace",
-                    fontSize:      11,
-                    color:         "var(--ink-4)",
-                    backgroundColor: "var(--bg-2)",
-                    padding:       "2px 6px",
-                    borderRadius:  "var(--r-xs)",
-                    flexShrink:    0,
-                  }}
-                >
-                  {model.sizeLabel}
-                </span>
-              </div>
-
-              {/* Full name */}
-              <p
-                style={{
-                  fontFamily:   "var(--font-jetbrains-mono), monospace",
-                  fontSize:     10,
-                  color:        "var(--ink-4)",
-                  margin:       0,
-                  overflow:     "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace:   "nowrap",
-                }}
-                title={model.fullName}
-              >
-                {model.fullName}
-              </p>
-
-              {/* Default badge */}
-              {model.active && (
-                <span
-                  style={{
-                    display:         "inline-block",
-                    marginTop:       8,
-                    fontSize:        10,
-                    fontFamily:      "var(--font-jetbrains-mono), monospace",
-                    color:           "var(--green)",
-                    backgroundColor: "color-mix(in srgb, var(--green) 12%, transparent)",
-                    padding:         "1px 6px",
-                    borderRadius:    "var(--r-full)",
-                  }}
-                >
-                  default on
-                </span>
-              )}
-            </div>
-          ))}
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        {/* Heading */}
+        <div style={{ textAlign: "center", marginBottom: 56 }}>
+          <h2
+            style={{
+              fontWeight:    800,
+              fontSize:      "clamp(28px, 4vw, 42px)",
+              color:         "var(--ink)",
+              marginBottom:  12,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Supported Models
+          </h2>
+          <p style={{ fontSize: 17, color: "var(--ink-3)", maxWidth: 520, margin: "0 auto" }}>
+            Compare any of these 11 state-of-the-art LLMs side by side with a single prompt.
+          </p>
         </div>
+
+        {/* MagicBento container */}
+        <MagicBento
+          textAutoHide={true}
+          enableStars
+          enableSpotlight
+          enableBorderGlow={true}
+          enableTilt={false}
+          enableMagnetism={false}
+          clickEffect
+          spotlightRadius={500}
+          particleCount={16}
+          glowColor="139, 92, 246"
+          disableAnimations={false}
+        >
+          <div
+            style={{
+              display:             "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+              gap:                 20,
+            }}
+          >
+            {MODELS.map((model) => (
+              <div key={model.id} style={{ display: "flex", justifyContent: "center" }}>
+                <TiltedCard
+                  imageSrc={model.logoSvg}
+                  isUrl={false}
+                  altText={model.label}
+                  captionText={model.label}
+                  containerHeight={220}
+                  containerWidth={180}
+                  imageHeight={80}
+                  imageWidth={80}
+                  rotateAmplitude={10}
+                  scaleOnHover={1.05}
+                  showMobileWarning={false}
+                  showTooltip={true}
+                  displayOverlayContent={true}
+                  accentColor={model.color}
+                  overlayContent={
+                    <div style={{ textAlign: "center", padding: "0 8px" }}>
+                      <p
+                        style={{
+                          fontSize:   12,
+                          fontWeight: 700,
+                          color:      "var(--bg)",
+                          margin:     0,
+                          textShadow: "0 1px 4px rgba(0,0,0,0.6)",
+                        }}
+                      >
+                        {model.label}
+                      </p>
+                      <p
+                        style={{
+                          fontSize:   10,
+                          color:      "rgba(255,255,255,0.8)",
+                          margin:     "2px 0 0",
+                          fontFamily: "var(--font-jetbrains-mono), monospace",
+                        }}
+                      >
+                        {model.sizeLabel}
+                      </p>
+                    </div>
+                  }
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Default models legend */}
+          <div
+            style={{
+              marginTop:   24,
+              display:     "flex",
+              flexWrap:    "wrap",
+              gap:         8,
+              justifyContent: "center",
+            }}
+          >
+            {MODELS.filter((m) => m.active).map((m) => (
+              <span
+                key={m.id}
+                style={{
+                  display:         "inline-flex",
+                  alignItems:      "center",
+                  gap:             5,
+                  fontSize:        12,
+                  color:           "var(--ink-3)",
+                  backgroundColor: "var(--bg-2)",
+                  padding:         "3px 10px",
+                  borderRadius:    "var(--r-full)",
+                  border:          "1px solid var(--border)",
+                }}
+              >
+                <span
+                  style={{
+                    width:           7,
+                    height:          7,
+                    borderRadius:    "50%",
+                    backgroundColor: m.color,
+                    display:         "inline-block",
+                    flexShrink:      0,
+                  }}
+                />
+                {m.label}
+                <span style={{ color: "var(--green)", fontWeight: 600, fontSize: 10 }}>
+                  ✓ default
+                </span>
+              </span>
+            ))}
+          </div>
+        </MagicBento>
       </div>
     </section>
   );

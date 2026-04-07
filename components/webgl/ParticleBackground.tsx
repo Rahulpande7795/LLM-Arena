@@ -38,6 +38,8 @@ export default function ParticleBackground({
     if (!enabled) return;
     if (typeof window === "undefined") return;
 
+    // Capture ref synchronously — safe to use in cleanup closure
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -175,12 +177,11 @@ export default function ParticleBackground({
     return () => {
       cancelled = true;
       cancelAnimationFrame(frameId);
-      const el = canvasRef.current as (HTMLCanvasElement & {
-        __cleanup?: () => void
-      }) | null;
+      // Use the locally captured canvas, not canvasRef.current (which may be null by cleanup time)
+      const el = canvas as HTMLCanvasElement & { __cleanup?: () => void };
       el?.__cleanup?.();
     };
-  }, [enabled]);
+  }, [enabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!enabled) return null;
 

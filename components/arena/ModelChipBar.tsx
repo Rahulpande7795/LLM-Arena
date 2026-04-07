@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { MODELS } from "@/lib/models";
+import FuzzyText from "@/registry/magicui/FuzzyText";
 import type { HealthStatus } from "@/hooks/useModelHealth";
 
 // ============================================================
@@ -110,7 +111,16 @@ function ModelChip({
           flexShrink:      0,
         }}
       />
-      {model.label}
+      {offline ? (
+        <FuzzyText
+          baseIntensity={0.22}
+          hoverIntensity={0.5}
+          enableHover={true}
+          fontSize={13}
+        >
+          {model.label}
+        </FuzzyText>
+      ) : model.label}
       <HealthDot status={healthStatus} />
     </motion.button>
   );

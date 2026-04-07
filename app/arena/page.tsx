@@ -395,7 +395,6 @@ function ArenaPageInner() {
           }}
         >
           <Topbar
-            currentView={currentView}
             serverStatus={serverStatus}
             onMenuOpen={() => setMobileMenuOpen(true)}
             onShortcuts={() => setShortcutsOpen(true)}

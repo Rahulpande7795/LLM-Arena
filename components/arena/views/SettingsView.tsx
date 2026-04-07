@@ -136,7 +136,7 @@ export function SettingsView() {
                   borderRadius:    "var(--r-full)",
                   border:          "1.5px solid var(--border-s)",
                   backgroundColor: theme === t ? "var(--accent)" : "transparent",
-                  color:           theme === t ? "white"          : "var(--ink-3)",
+                  color:           theme === t ? "var(--bg)"      : "var(--ink-3)",
                   fontSize:        13,
                   fontWeight:      theme === t ? 600              : 400,
                   cursor:          "pointer",

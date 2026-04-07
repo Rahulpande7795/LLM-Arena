@@ -92,7 +92,8 @@ export function PromptBar({
   );
 
   // Token estimate
-  const estimatedTokens = Math.ceil(value.length / 4);
+  const charCount = value.length;
+  const estimatedTokens = Math.ceil(charCount / 4);
 
   return (
     <div
@@ -186,7 +187,7 @@ export function PromptBar({
             }}
           />
 
-          {/* Token estimate */}
+          {/* Char + Token estimate */}
           {value.length > 0 && (
             <span
               style={{
@@ -197,9 +198,10 @@ export function PromptBar({
                 fontSize:   11,
                 color:      "var(--ink-4)",
                 pointerEvents: "none",
+                whiteSpace: "nowrap",
               }}
             >
-              ~{estimatedTokens} tok
+              {charCount} chars · ~{estimatedTokens} tok
             </span>
           )}
         </div>

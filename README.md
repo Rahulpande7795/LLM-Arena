@@ -1,129 +1,124 @@
-# ⚡ LLM Arena
+# LLM Arena
 
-> Fire the same prompt at 11 LLMs simultaneously. Watch them race. Pick the winner.
+A self-hosted browser application that fires the same prompt at up to **11 NVIDIA-hosted LLMs simultaneously** and compares their responses, speed, and tool-calling capabilities side by side.
 
-A self-hosted benchmarking tool that runs every model in parallel, streams responses in real time, and gives you hard metrics — TTFT, tokens/second, latency — so you actually know which model is fast vs. which one just feels fast.
-
----
-
-## Demo
-
-```
-Prompt: "Explain transformers in 3 sentences"
-
-Mistral 24B  ████████████████░░  done   142ms TTFT  87.3 t/s  214 tokens  ★1
-Llama 8B     ████████████████████ done  98ms TTFT   94.1 t/s  198 tokens  ★2  ← fastest
-Qwen 72B     ████████████░░░░░░░  done  201ms TTFT  71.2 t/s  287 tokens  ★3
-Kimi K2      ████████████████░░░  done  183ms TTFT  68.9 t/s  341 tokens  ★4
-```
+![LLM Arena](https://img.shields.io/badge/Next.js-14-black?logo=next.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript) ![Vitest](https://img.shields.io/badge/Tests-46%20passing-green?logo=vitest)
 
 ---
 
 ## Features
 
-- **11 models, 4 active by default** — toggle any combination with one click
-- **Real-time SSE streaming** — all models stream simultaneously, not sequentially
-- **Hard metrics per model** — TTFT, TPS, token count, total latency
-- **Tool calling** — detects which models actually call tools vs. ignore them
-- **Leaderboard** — auto-ranks by tokens/second after all models finish
-- **Side-by-side compare** — pick any two models, diff their outputs word-by-word
-- **Export** — JSON, CSV, Markdown, or plain text
-- **13 prompt templates** — coding, reasoning, creative, summarization and more
-- **Run history** — every run saved with full metrics
-- **WebGL particle background** — Three.js, toggleable
-- **Dark/light theme** — persistent, instant toggle
-- **Keyboard-first** — Ctrl+Enter, Ctrl+K, Ctrl+E, Ctrl+/, T
+| Feature | Details |
+|---------|---------|
+| 🔥 **Simultaneous inference** | Fire prompts at up to 11 models at once via SSE streaming |
+| ⚡ **Real-time metrics** | TTFT, TPS, token count, and latency per model card |
+| 🛠️ **Tool calling** | Two-phase detection — see which models actually call tools |
+| 🏆 **Leaderboard** | Ranked by tokens-per-second after all models finish |
+| 📤 **Export** | JSON, CSV, Markdown, or plain text |
+| 🎨 **Dark / Light theme** | Persisted preference, instant toggle |
+| 📱 **Responsive** | Full mobile layout with off-canvas sidebar |
+| ⌨️ **Keyboard shortcuts** | `Ctrl+Enter` · `Ctrl+K` · `Ctrl+E` · `Ctrl+/` · `T` |
+| 🌐 **WebGL background** | Three.js particle field (toggleable) |
+
+---
+
+## Supported Models (11)
+
+| Model | Provider | Default |
+|-------|----------|---------|
+| Mistral Small 24B | Mistral AI | ✅ |
+| Llama 3.1 8B | Meta | ✅ |
+| Qwen 2.5 72B | Alibaba | ✅ |
+| Kimi K2 | Moonshot AI | ✅ |
+| GPT-OSS 20B | OpenAI OSS | — |
+| Sarvam M | Sarvam AI | — |
+| Qwen 2.5 0.5B | Alibaba | — |
+| Kimi K2.5 | Moonshot AI | — |
+| Gemma 3 9B | Google | — |
+| Mistral 7B | Mistral AI | — |
+| Qwen 2.5 7B | Alibaba | — |
 
 ---
 
 ## Quick Start
 
+See [SETUP.md](./SETUP.md) for full setup instructions.
+
 ```bash
-# 1. Clone
-git clone <repo-url> llm-arena && cd llm-arena
+# 1. Install dependencies
+npm install
+cd server && npm install && cd ..
 
-# 2. Install
-npm install && cd server && npm install && cd ..
+# 2. Configure environment
+cp server/.env.example server/.env
+# Add your NVIDIA API key to server/.env
 
-# 3. Configure
-echo "NEXT_PUBLIC_PROXY_URL=http://localhost:8000" > .env.local
-echo "NVIDIA_API_KEY=nvapi-your-key" > server/.env
+# 3. Start backend proxy (terminal 1)
+cd server && node index.js
 
-# 4. Run (two terminals)
-cd server && node index.js          # Terminal 1 — proxy on :8000
-npm run dev                         # Terminal 2 — Next.js on :3000
+# 4. Start frontend (terminal 2)
+npm run dev
+
+# Open http://localhost:3000
 ```
-
-Get your free NVIDIA API key at **[build.nvidia.com](https://build.nvidia.com)**.
-
-See [`SETUP.md`](./SETUP.md) for full setup, troubleshooting, and deployment.
-
----
-
-## Models
-
-| Model | ID | Size | Active |
-|-------|----|------|--------|
-| Mistral Small 24B | `mistral-24b` | 24B | ✅ |
-| Llama 3.1 8B | `llama-8b` | 8B | ✅ |
-| Qwen 2.5 72B | `qwen-24b` | 72B | ✅ |
-| Kimi K2 | `kimi-k2` | — | ✅ |
-| GPT-OSS 20B | `gpt-oss-20b` | 20B | — |
-| Sarvam-M | `sarvam-m` | — | — |
-| Qwen 2.5 0.5B | `qwen-500m` | 0.5B | — |
-| Kimi K2.5 (thinking) | `kimi-2.5` | — | — |
-| Gemma 3 9B | `gemma-9b` | 9B | — |
-| Mistral 7B | `mistral-7b` | 7B | — |
-| Qwen 2.5 7B | `qwen-7b` | 7B | — |
-
----
-
-## Keyboard Shortcuts
-
-| Key | Action |
-|-----|--------|
-| `Ctrl+Enter` | Run prompt |
-| `Ctrl+K` | Open templates |
-| `Ctrl+E` | Export results |
-| `Ctrl+/` | Keyboard shortcuts reference |
-| `T` | Toggle dark/light theme |
-| `Esc` | Cancel running inference |
 
 ---
 
 ## Architecture
 
 ```
-Browser                    Express :8000              NVIDIA NIM API
-────────                   ─────────────              ──────────────
-arena/page.tsx
-  └─ useInference.ts  ──►  /v1/chat/completions  ──►  model endpoint
-       SSE stream     ◄──  SSE proxy             ◄──  stream
-  └─ useToolCalling.ts ──► (same, with tools=[])
+Browser (Next.js 14)          Express Proxy (port 8000)
+┌─────────────────────┐       ┌──────────────────────┐
+│  arena/page.tsx     │──────▶│  /v1/chat/completions │──▶ NVIDIA API
+│  useInference.ts    │  SSE  │                      │    (build.nvidia.com)
+│  useToolCalling.ts  │◀──────│                      │
+└─────────────────────┘       └──────────────────────┘
+         │
+    Zustand Store (persisted)
+    CSS Design Tokens
+    Framer Motion + GSAP
 ```
 
-The Express proxy exists to keep your NVIDIA API key server-side and to handle CORS for streaming. All models run in parallel via `Promise.allSettled`.
-
 ---
 
-## Stack
-
-- **Next.js 14** App Router + TypeScript
-- **React 18** + Zustand (persisted state)
-- **Tailwind CSS v3** + CSS custom property token system
-- **Framer Motion** + GSAP 3 + Lenis (smooth scroll)
-- **Three.js r128** (dynamic import, WebGL particles)
-- **Express.js** proxy (port 8000)
-- **Vitest** + Testing Library (46 tests)
-
----
-
-## Tests
+## Commands
 
 ```bash
-npm test
-# 46 tests — SSE parsing, error classification, tool calling
+npm run dev          # Start dev server (port 3000)
+npm run build        # Production build
+npm test             # Run 46 Vitest tests
+npx tsc --noEmit     # TypeScript check
+npx next lint        # ESLint check
+cd server && node index.js  # Start proxy (port 8000)
 ```
+
+---
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Enter` | Run prompt |
+| `Ctrl+K` | Open templates |
+| `Ctrl+E` | Export results |
+| `Ctrl+/` | Show shortcuts |
+| `Escape` | Stop all runs |
+| `T` | Toggle theme |
+| `[` / `]` | Previous / Next view |
+
+---
+
+## Tech Stack
+
+- **Framework**: Next.js 14 App Router
+- **Language**: TypeScript (strict)
+- **Styling**: Tailwind CSS v3 + CSS custom properties
+- **Animation**: Framer Motion + GSAP 3 + Lenis smooth scroll
+- **3D**: Three.js (dynamic import, WebGL particles)
+- **State**: Zustand + persist middleware
+- **Backend**: Express.js proxy (CommonJS, port 8000)
+- **Tests**: Vitest + @testing-library/react (46 tests)
+- **Fonts**: Plus Jakarta Sans + JetBrains Mono
 
 ---
 

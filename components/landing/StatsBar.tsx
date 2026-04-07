@@ -13,10 +13,9 @@ interface StatItemProps {
   value:   number | null;
   label:   string;
   suffix:  string;
-  index:   number;
 }
 
-function StatItem({ value, label, suffix, index }: StatItemProps) {
+function StatItem({ value, label, suffix }: StatItemProps) {
   const numRef = useRef<HTMLSpanElement>(null);
   const triggered = useRef(false);
 
@@ -121,7 +120,7 @@ export function StatsBar() {
         }}
       >
         {STATS.map((stat, i) => (
-          <StatItem key={i} {...stat} index={i} />
+          <StatItem key={i} {...stat} />
         ))}
       </div>
     </div>

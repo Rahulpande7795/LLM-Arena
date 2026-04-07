@@ -30,7 +30,7 @@ function RankBadge({ rank }: { rank: number }) {
 
   if (rank === 1) return <span style={{ ...style, color: "var(--amber)" }}>🥇</span>;
   if (rank === 2) return <span style={{ ...style, color: "var(--ink-3)" }}>🥈</span>;
-  if (rank === 3) return <span style={{ ...style, color: "#cd7f32"     }}>🥉</span>;
+  if (rank === 3) return <span style={{ ...style, color: "var(--red)" }}>🥉</span>;
   return (
     <span style={{ ...style, color: "var(--ink-4)" }}>
       #{rank}
@@ -56,11 +56,10 @@ export function LeaderboardStrip({ results, visible }: LeaderboardStripProps) {
       {visible && (
         <motion.div
           key="leaderboard"
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: "auto", opacity: 1 }}
-          exit={{    height: 0, opacity: 0 }}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{    opacity: 0, y: 8 }}
           transition={{ type: "spring", stiffness: 280, damping: 30 }}
-          style={{ overflow: "hidden" }}
         >
           <div
             style={{

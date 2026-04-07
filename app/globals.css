@@ -68,6 +68,7 @@
   --shadow-sm:   0 1px 3px rgba(0, 0, 0, 0.08),  0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md:   0 4px 6px rgba(0, 0, 0, 0.07),  0 2px 4px rgba(0, 0, 0, 0.05);
   --shadow-lg:   0 10px 15px rgba(0, 0, 0, 0.10), 0 4px 6px rgba(0, 0, 0, 0.06);
+  --shadow-glow: 0 0 0 3px rgba(124, 58, 237, 0.22);
 
   --shimmer-color: rgba(0, 0, 0, 0.04);
 }
@@ -185,6 +186,25 @@ body {
 /* Hide scrollbar utility */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
+
+/* Mobile responsive utility classes */
+.hide-mobile { display: flex; }
+.show-mobile { display: none; }
+
+@media (max-width: 640px) {
+  .hide-mobile { display: none !important; }
+  .show-mobile { display: flex !important; }
+}
+
+/* Mobile backdrop overlay */
+.mobile-backdrop {
+  display: none;
+}
+@media (max-width: 640px) {
+  .mobile-backdrop {
+    display: block !important;
+  }
+}
 
 /* Glass morphism utility */
 .glass {
@@ -316,4 +336,19 @@ body {
   [data-prompt-bar] {
     padding-bottom: calc(10px + env(safe-area-inset-bottom)) !important;
   }
+}
+
+/* ── Font-size floor for very small screens ── */
+@media (max-width: 380px) {
+  html { font-size: 14px; }
+}
+
+/* ── Page transition wrapper ── */
+.page-transition {
+  animation: pageIn 300ms ease-out;
+}
+
+@keyframes pageIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
