@@ -23,6 +23,19 @@ export const metadata: Metadata = {
   title: "LLM Arena — Benchmark Every Model, Side by Side",
   description:
     "Fire the same prompt at multiple LLMs simultaneously. Compare speed, quality, and tool-calling in real time.",
+  keywords: ["LLM", "Arena", "AI", "Benchmark", "Comparison", "Inference", "Tool Calling"],
+  openGraph: {
+    title: "LLM Arena",
+    description: "Real-time LLM benchmarking and comparison tool.",
+    url: "https://llm-arena.vercel.app", // placeholder or real if known
+    siteName: "LLM Arena",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LLM Arena",
+    description: "Benchmark Every Model, Side by Side",
+  },
 };
 
 export default function RootLayout({
