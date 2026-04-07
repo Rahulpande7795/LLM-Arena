@@ -30,7 +30,7 @@ export function ToolMockToggle({ enabled, onToggle }: ToolMockToggleProps) {
         whiteSpace:      "nowrap",
       }}
       onClick={onToggle}
-      role="button"
+      role="switch"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -38,7 +38,7 @@ export function ToolMockToggle({ enabled, onToggle }: ToolMockToggleProps) {
           onToggle();
         }
       }}
-      aria-pressed={enabled}
+      aria-checked={enabled}
       aria-label="Toggle tool calling mode"
     >
       <span aria-hidden="true">⚡</span>

@@ -19,8 +19,8 @@
 
   --ink:   #f8fafc;
   --ink-2: #e2e8f0;
-  --ink-3: #94a3b8;
-  --ink-4: #64748b;
+  --ink-3: #cbd5e1;
+  --ink-4: #94a3b8;
 
   --accent:      #8b5cf6;
   --accent-glow: rgba(139, 92, 246, 0.28);
@@ -54,8 +54,8 @@
 
   --ink:   #0f172a;
   --ink-2: #1e293b;
-  --ink-3: #475569;
-  --ink-4: #94a3b8;
+  --ink-3: #334155;
+  --ink-4: #64748b;
 
   --accent:      #7c3aed;
   --accent-glow: rgba(124, 58, 237, 0.18);
@@ -341,6 +341,17 @@ body {
 /* ── Font-size floor for very small screens ── */
 @media (max-width: 380px) {
   html { font-size: 14px; }
+}
+
+@media (max-width: 640px) {
+  button, 
+  [role="button"],
+  [role="switch"],
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
 /* ── Page transition wrapper ── */

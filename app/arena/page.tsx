@@ -414,7 +414,8 @@ function ArenaPageInner() {
             onShortcuts={() => setShortcutsOpen(true)}
           />
 
-          <div
+          <main
+            id="main-content"
             style={{
               flex:          1,
               overflowY:     "auto",
@@ -482,7 +483,7 @@ function ArenaPageInner() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
+          </main>
 
           {currentView === "compare" && (
             <PromptBar

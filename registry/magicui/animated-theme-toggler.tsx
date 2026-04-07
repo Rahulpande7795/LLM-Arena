@@ -13,6 +13,8 @@ export function AnimatedThemeToggler() {
 
   return (
     <button
+      role="switch"
+      aria-checked={isDark}
       onClick={toggleTheme}
       aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
       title={`Switch to ${isDark ? "light" : "dark"} theme`}
