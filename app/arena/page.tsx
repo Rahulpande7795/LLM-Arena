@@ -10,6 +10,7 @@ const Sidebar = dynamic(() => import("@/components/arena/Sidebar").then(mod => m
   loading: () => <div style={{ width: 64, height: "100vh", backgroundColor: "var(--bg-1)" }} />,
 });
 import { Topbar }           from "@/components/arena/Topbar";
+import { SystemPromptContainer } from "@/components/arena/SystemPromptContainer";
 const ModelChipBar = dynamic(() => import("@/components/arena/ModelChipBar").then(mod => mod.ModelChipBar), {
   loading: () => <div style={{ height: 48 }} />,
 });
@@ -24,9 +25,6 @@ const HistoryView = dynamic(() => import("@/components/arena/views/HistoryView")
 const SettingsView = dynamic(() => import("@/components/arena/views/SettingsView").then(mod => mod.SettingsView), { ssr: false });
 
 // Lazy-loaded modals
-const SystemPromptModal = dynamic(() =>
-  import("@/components/modals/SystemPromptModal").then((m) => ({ default: m.SystemPromptModal }))
-);
 const TemplatesModal = dynamic(() =>
   import("@/components/modals/TemplatesModal").then((m) => ({ default: m.TemplatesModal }))
 );
@@ -111,7 +109,6 @@ function ArenaPageInner() {
   const [shake,              setShake]              = useState(false);
 
   // Modal state
-  const [systemPromptOpen, setSystemPromptOpen] = useState(false);
   const [templatesOpen,    setTemplatesOpen]    = useState(false);
   const [exportOpen,       setExportOpen]       = useState(false);
   const [shortcutsOpen,    setShortcutsOpen]    = useState(false);
@@ -293,7 +290,6 @@ function ArenaPageInner() {
     shortcuts: () => setShortcutsOpen(true),
     escape: () => {
       if (isRunning) handleCancel();
-      setSystemPromptOpen(false);
       setTemplatesOpen(false);
       setExportOpen(false);
       setShortcutsOpen(false);
@@ -434,13 +430,6 @@ function ArenaPageInner() {
                   transition={{ duration: 0.22, ease: "easeOut" }}
                   style={{ display: "flex", flexDirection: "column", flex: 1 }}
                 >
-                  <ModelChipBar
-                    activeModels={activeModels}
-                    health={health}
-                    onToggle={toggleModel}
-                    onSelectAll={() => setActiveModels(MODELS.map((m) => m.id))}
-                    onSelectNone={() => setActiveModels([])}
-                  />
                   <div style={{ flex: 1 }}>
                     <ResponseGrid
                       models={activeModelConfigs}
@@ -451,6 +440,7 @@ function ArenaPageInner() {
                       results={results}
                       onRetry={handleRetry}
                       onCopy={handleCopy}
+                      style={{ paddingBottom: 220 }}
                     />
                   </div>
                   <LeaderboardStrip results={results} visible={leaderboardVisible} />
@@ -486,32 +476,59 @@ function ArenaPageInner() {
           </main>
 
           {currentView === "compare" && (
-            <PromptBar
-              value={prompt}
-              onChange={setPrompt}
-              onRun={handleRun}
-              onCancel={handleCancel}
-              onTemplates={() => setTemplatesOpen(true)}
-              onSystemPrompt={() => setSystemPromptOpen(true)}
-              running={isRunning}
-              toolMode={toolMode}
-              onToggleToolMode={toggleToolMode}
-              shake={shake}
-              onShakeEnd={() => setShake(false)}
-            />
+            <div
+              style={{
+                position:        "fixed",
+                bottom:          0,
+                right:           0,
+                left:            "var(--sidebar-width, 268px)",
+                zIndex:          40,
+                display:         "flex",
+                flexDirection:   "column",
+                pointerEvents:   "none", // let clicks pass through the gap
+                backgroundColor: "linear-gradient(to top, var(--bg-0) 80%, transparent)",
+              }}
+            >
+              {/* Controls Group */}
+              <div
+                style={{
+                  pointerEvents: "auto",
+                  paddingBottom: 16,
+                  display:       "flex",
+                  flexDirection: "column",
+                  gap:           8,
+                }}
+              >
+                <SystemPromptContainer />
+                <div style={{ padding: "0 16px" }}>
+                  <ModelChipBar
+                    activeModels={activeModels}
+                    health={health}
+                    onToggle={toggleModel}
+                    onSelectAll={() => setActiveModels(MODELS.map((m) => m.id))}
+                    onSelectNone={() => setActiveModels([])}
+                  />
+                </div>
+                <PromptBar
+                  value={prompt}
+                  onChange={setPrompt}
+                  onRun={handleRun}
+                  onCancel={handleCancel}
+                  onTemplates={() => setTemplatesOpen(true)}
+                  running={isRunning}
+                  toolMode={toolMode}
+                  onToggleToolMode={toggleToolMode}
+                  shake={shake}
+                  onShakeEnd={() => setShake(false)}
+                />
+              </div>
+            </div>
           )}
         </div>
       </div>
 
       {/* Modals */}
       <AnimatePresence>
-        {systemPromptOpen && (
-          <SystemPromptModal
-            key="sys"
-            isOpen={systemPromptOpen}
-            onClose={() => setSystemPromptOpen(false)}
-          />
-        )}
         {templatesOpen && (
           <TemplatesModal
             key="tpl"
