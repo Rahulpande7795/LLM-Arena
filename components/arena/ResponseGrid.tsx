@@ -22,7 +22,6 @@ interface ResponseGridProps {
   results:    Record<string, RunResult>;
   onRetry:    (modelId: string) => void;
   onCopy:     (modelId: string) => void;
-  style?:      React.CSSProperties;
 }
 
 // ============================================================
@@ -37,7 +36,6 @@ export function ResponseGrid({
   toolCalls,
   onRetry,
   onCopy,
-  style: userStyle,
 }: ResponseGridProps) {
   const { gridTemplateColumns } = useLayout(models.length);
 
@@ -64,7 +62,6 @@ export function ResponseGrid({
         gap:                   16,
         padding:               "16px 16px 160px", // bottom pad for PromptBar
         alignItems:            "start",
-        ...userStyle,
       }}
     >
       <AnimatePresence mode="popLayout" initial={false}>

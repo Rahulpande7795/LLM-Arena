@@ -2,9 +2,7 @@
 
 import React from "react";
 import { ModalOverlay } from "./ModalOverlay";
-import { BottomSheet } from "@/components/ui/BottomSheet";
 import { SHORTCUT_LABELS } from "@/lib/shortcuts";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { ShortcutKey } from "@/types";
 
 // ============================================================
@@ -62,10 +60,13 @@ const SHORTCUT_ORDER: ShortcutKey[] = [
 ];
 
 export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
-  const isMobile = useMediaQuery("(max-width: 640px)");
-
-  const content = (
-    <>
+  return (
+    <ModalOverlay
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Keyboard Shortcuts"
+      size="sm"
+    >
       <table
         style={{
           width:           "100%",
@@ -139,25 +140,6 @@ export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
       >
         Single-key shortcuts (T, F) are disabled when focus is inside an input field.
       </p>
-    </>
-  );
-
-  if (isMobile) {
-    return (
-      <BottomSheet isOpen={isOpen} onClose={onClose} title="Keyboard Shortcuts">
-        {content}
-      </BottomSheet>
-    );
-  }
-
-  return (
-    <ModalOverlay
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Keyboard Shortcuts"
-      size="sm"
-    >
-      {content}
     </ModalOverlay>
   );
 }
