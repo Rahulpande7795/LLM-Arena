@@ -17,8 +17,7 @@ coverage/
 # -----------------------------
 .env
 .env.*
-.env*.local
-server/.env
+!.env.example
 
 # -----------------------------
 # Logs
@@ -41,11 +40,21 @@ Thumbs.db
 .idea/
 
 # -----------------------------
-# Agent / AI tooling (IMPORTANT)
+# AI / Agent tooling (IGNORE ALL)
 # -----------------------------
 .claude/
 .cursor/
 .code-review-graph/
+
+.cursorrules
+.mcp.json
+.opencode.json
+.windsurfrules
+
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+HANDOFF.md
 
 # -----------------------------
 # Vercel
@@ -57,5 +66,10 @@ Thumbs.db
 # -----------------------------
 *.tsbuildinfo
 
-# DO NOT IGNORE THIS
-# next-env.d.ts should be committed
+# -----------------------------
+# Misc (local scripts)
+# -----------------------------
+req_test.js
+
+# DO NOT IGNORE
+!next-env.d.ts
